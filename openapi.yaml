@@ -1,0 +1,193 @@
+
+openapi: 3.1.0
+info:
+  title: Fliv Chatbot Builder API
+  version: 1.0.0
+  description: API for building, training, and interacting with AI chatbots on the Fliv platform.
+servers:
+  - url: http://localhost:4000/v1
+    description: Local dev
+paths:
+  /auth/signup:
+    post:
+      summary: Create a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                name:
+                  type: string
+      responses:
+        "201":
+          description: User created
+  /auth/login:
+    post:
+      summary: Login and get JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: JWT token returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+  /bots:
+    get:
+      summary: List all chatbots for authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of chatbots
+    post:
+      summary: Create a new chatbot
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                visibility:
+                  type: string
+                  enum: [private, public]
+      responses:
+        "201":
+          description: Bot created
+  /bots/{botId}/train:
+    post:
+      summary: Upload documents or URLs for chatbot training
+      parameters:
+        - name: botId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                url:
+                  type: string
+      responses:
+        "200":
+          description: Training started
+  /bots/{botId}/chat:
+    post:
+      summary: Send a chat message to a bot
+      parameters:
+        - name: botId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      responses:
+        "200":
+          description: Bot reply
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+  /widget/chat:
+    post:
+      summary: Public endpoint for embedded widget chats
+      description: Used by websites embedding the chatbot widget. Requires bot embed key.
+      parameters:
+        - name: x-embed-key
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      responses:
+        "200":
+          description: Bot response returned
+  /billing/subscribe:
+    post:
+      summary: Create a subscription (Stripe or Razorpay)
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                planId:
+                  type: string
+      responses:
+        "200":
+          description: Payment URL returned
+  /analytics/usage:
+    get:
+      summary: Get message usage and token stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Usage stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages_sent:
+                    type: integer
+                  tokens_used:
+                    type: integer
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
