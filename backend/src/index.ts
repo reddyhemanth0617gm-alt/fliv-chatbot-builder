@@ -92,9 +92,11 @@ app.post('/v1/bots/:botId/chat', authMiddleware, async (req, res) => {
         max_tokens: 500
       })
     });
-    const data = await resp.json();
-    const text = data?.choices?.[0]?.message?.content || JSON.stringify(data);
-    res.json({ response: text });
+    const data = (await resp.json()) as any; // 👈 tells TS to treat it as any
+const text =
+  (data?.choices && data.choices[0]?.message?.content) ||
+  'No response generated.';
+res.json({ response: text });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'LLM error' });
