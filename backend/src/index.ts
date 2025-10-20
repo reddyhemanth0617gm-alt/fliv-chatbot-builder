@@ -125,3 +125,16 @@ app.get('/v1/analytics/usage', authMiddleware, (req, res) => {
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log('Fliv backend running on', PORT));
+
+const app = express();
+
+// ✅ Allow frontend to connect
+app.use(
+  cors({
+    origin: "*", // for testing (later restrict to your frontend URL)
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use(express.json());
